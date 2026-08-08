@@ -1265,6 +1265,14 @@ const Sound = {
   }
 };
 
+document.addEventListener('pointerdown', () => {
+  Sound.init();
+
+  if (Sound.ctx && Sound.ctx.state === 'suspended') {
+    Sound.ctx.resume();
+  }
+}, { once: true });
+
 document.getElementById('sound-toggle').addEventListener('click', (e) => {
   Sound.init();
   Sound.setMuted(!Sound.muted);
