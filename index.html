@@ -690,9 +690,9 @@ body.theme-girl .finale-word{ color: #F2B6CE; text-shadow: 0 0 40px rgba(232,160
 #sound-toggle{ right: 16px; }
 #easter-logo{ left: 16px; }
 #easter-logo{
-  width: 54px;
-  height: 54px;
-  font-size: 29px;
+  width: 74px;
+  height: 74px;
+  font-size: 47px;
 }
 #sound-toggle:focus-visible, #easter-logo:focus-visible{ outline: 3px solid var(--gold); outline-offset: 2px; }
 
@@ -977,6 +977,150 @@ body.theme-girl .finale-word{ color: #F2B6CE; text-shadow: 0 0 40px rgba(232,160
     box-shadow:
       0 6px 18px rgba(70,50,30,.25),
       0 0 26px rgba(226,201,143,.55);
+  }
+}
+
+/* ✨ Easter egg chamativo */
+#easter-logo{
+  animation: baby-hint 2.2s ease-in-out infinite;
+  box-shadow:
+    0 0 0 rgba(226,201,143,0),
+    0 0 0 rgba(226,201,143,0);
+}
+
+#easter-logo::after{
+  content: "✦";
+  position: absolute;
+  top: -5px;
+  right: -3px;
+
+  color: #E2C98F;
+  font-size: 13px;
+
+  opacity: 0;
+  transform: scale(.5) rotate(-20deg);
+
+  animation: baby-sparkle 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes baby-hint{
+
+  0%, 18%, 100%{
+    transform: scale(1) rotate(0deg);
+    box-shadow:
+      0 0 0 rgba(226,201,143,0),
+      0 0 0 rgba(226,201,143,0);
+  }
+
+  22%{
+    transform: scale(1.08) translateY(-4px) rotate(-5deg);
+    box-shadow:
+      0 0 12px rgba(226,201,143,.30),
+      0 0 25px rgba(226,201,143,.12);
+  }
+
+  27%{
+    transform: scale(1) translateY(0) rotate(5deg);
+  }
+
+  32%{
+    transform: scale(1.10) translateY(-5px) rotate(-3deg);
+    box-shadow:
+      0 0 18px rgba(226,201,143,.42),
+      0 0 34px rgba(226,201,143,.18);
+  }
+
+  37%{
+    transform: scale(1) translateY(0) rotate(0deg);
+  }
+
+  42%{
+    transform: scale(1.06) translateY(-3px);
+  }
+
+  47%{
+    transform: scale(1) translateY(0);
+  }
+}
+
+
+@keyframes baby-sparkle{
+
+  0%, 65%, 100%{
+    opacity: 0;
+    transform: scale(.5) rotate(-20deg);
+  }
+
+  72%{
+    opacity: 1;
+    transform: scale(1.2) rotate(10deg);
+  }
+
+  82%{
+    opacity: .8;
+    transform: scale(1) rotate(0deg);
+  }
+
+  90%{
+    opacity: 0;
+    transform: scale(.5) rotate(-20deg);
+  }
+}
+
+#easter-logo:hover{
+  transform: scale(1.12);
+  box-shadow:
+    0 0 18px rgba(226,201,143,.45),
+    0 0 35px rgba(226,201,143,.18);
+}
+
+#easter-logo{
+  position: fixed;
+  overflow: hidden;
+}
+
+/* ✨ Reflexo misterioso passando pelo botão */
+#easter-logo::before{
+  content: "";
+  position: absolute;
+  top: -30%;
+  left: -100%;
+
+  width: 55%;
+  height: 160%;
+
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255,255,255,0.05) 30%,
+    rgba(255,244,196,0.75) 50%,
+    rgba(255,255,255,0.08) 70%,
+    transparent 100%
+  );
+
+  transform: skewX(-20deg);
+
+  animation: secret-shine 2.2s ease-in-out infinite;
+
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes secret-shine{
+
+  0%, 28%, 100%{
+    left: -100%;
+    opacity: 0;
+  }
+
+  34%{
+    opacity: 1;
+  }
+
+  50%{
+    left: 150%;
+    opacity: 0;
   }
 }
 
@@ -1385,7 +1529,7 @@ startBtn.addEventListener('click', () => {
   showScreen('screen-greeting');
 });
 
-
+let answers = [];
 let qCurrent = 0;
 function buildProgress(){
   const track = document.getElementById('progress-track');
@@ -1419,20 +1563,18 @@ function renderQuestion(i){
   fact.classList.remove('show');
   fact.textContent = '';
 
-  document.getElementById('next-btn').classList.remove('show');
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.classList.remove('show');
 
-  q.options.forEach(opt => {
+  q.options.forEach((opt, optionIndex) => {
     const btn = document.createElement('button');
 
     btn.className = 'opt-btn';
     btn.textContent = opt;
 
-    btn.addEventListener('click', () => {
-
-      document.querySelectorAll('.opt-btn').forEach(b => {
-        b.disabled = true;
-      });
-
+    // Se a pessoa já tinha escolhido essa opção,
+    // mantém ela marcada.
+    if (answers[i] === optionIndex) {
       btn.classList.add('chosen');
 
       fact.textContent = q.fact;
@@ -1441,26 +1583,54 @@ function renderQuestion(i){
         fact.classList.add('show');
       });
 
-      const segs = document.querySelectorAll('.seg-fill');
-
-      if (segs[i]) {
-        segs[i].style.width = '100%';
-      }
-
-      const nextBtn = document.getElementById('next-btn');
-
       nextBtn.textContent =
         (i === QUESTIONS.length - 1)
           ? 'Ver resultado →'
           : 'Próxima pergunta →';
 
       nextBtn.classList.add('show');
+    }
 
+    btn.addEventListener('click', () => {
+
+      // Remove a seleção anterior
+      document.querySelectorAll('.opt-btn').forEach(b => {
+        b.classList.remove('chosen');
+      });
+
+      // Marca a nova escolha
+      btn.classList.add('chosen');
+
+      // Salva a resposta escolhida
+      answers[i] = optionIndex;
+
+      // Mostra o fact
+      fact.textContent = q.fact;
+
+      requestAnimationFrame(() => {
+        fact.classList.add('show');
+      });
+
+      // Marca a pergunta como concluída
+      const segs = document.querySelectorAll('.seg-fill');
+
+      if (segs[i]) {
+        segs[i].style.width = '100%';
+      }
+
+      // Mostra o botão de próxima
+      nextBtn.textContent =
+        (i === QUESTIONS.length - 1)
+          ? 'Ver resultado →'
+          : 'Próxima pergunta →';
+
+      nextBtn.classList.add('show');
     });
 
     optsWrap.appendChild(btn);
   });
 }
+
 
 
 document.getElementById('next-btn').addEventListener('click', () => {
